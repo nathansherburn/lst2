@@ -1,0 +1,135 @@
+<html lang="en" >
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    textarea {
+      width: 100%;
+      height: 100%;
+      border: none;
+      outline: none;
+      resize: none;
+      box-sizing: border-box;
+      padding: 16px;	
+    }
+    .saved {
+      padding: 16px;
+      position: fixed;
+      top: 0;
+      right: 0;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body ng-app="lst" ng-cloak style="display: flex; flex-direction: column;" ng-controller="AppCtrl">
+
+  <div ng-show="changesSaved" class="saved">
+    <i class="material-icons">save</i>
+  </div>
+  
+  <div style="display: flex; flex-direction: column; flex-grow: 1;">
+    <md-tabs class="md-accent" md-selected="data.selectedIndex" md-align-tabs="bottom" style="display: flex; flex-direction: column; flex-grow: 1;">
+      <md-tab id="current-tab">
+        <md-tab-label>Current</md-tab-label>
+        <md-tab-body>
+          <textarea ng-model="current" ng-change="update('current')"></textarea>
+        </md-tab-body>
+      </md-tab>
+      <md-tab id="today-tab">
+        <md-tab-label>Today</md-tab-label>
+        <md-tab-body>
+          <textarea ng-model="today" ng-change="update('today')"></textarea>
+        </md-tab-body>
+      </md-tab>
+      <md-tab id="backlog-tab">
+        <md-tab-label>Backlog</md-tab-label>
+        <md-tab-body>
+          <textarea ng-model="backlog" ng-change="update('backlog')"></textarea>
+        </md-tab-body>
+      </md-tab>
+    </md-tabs>
+  </div>
+  
+
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-animate.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-aria.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.3/angular-messages.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0-rc2/angular-material.min.js"></script>
+  
+  <script type="text/javascript">    
+
+    (function () {
+      'use strict'
+      
+      angular
+      .module('lst', ['ngMaterial'])
+      
+    })();
+
+    (function () {
+      'use strict'
+
+      angular
+      .module('lst')
+      .config(function($mdThemingProvider) {
+        $mdThemingProvider.theme('default')
+          .primaryPalette('amber')
+          .accentPalette('blue')
+      })
+      
+    })();
+
+    (function () {
+      'use strict'
+      
+      angular
+      .module('lst')
+      .controller('AppCtrl', AppCtrl)
+      
+      function AppCtrl ( $scope, $http, $timeout ) {
+      
+        var countdown = null
+        var host = window.location.host
+        $scope.changesSaved = true;
+        
+        $http.get('http://'+host+'/data')
+        .then(updateScope, error);
+        
+        function updateScope (res) {
+          console.log(res)
+          var data = res.data
+          data.forEach(function(list) {
+            $scope[list.list] = list.content;
+          })
+        }
+        
+        function error (err) {
+          console.log(err)
+        }
+        
+        function showSaved () {
+          $scope.changesSaved = true;
+        }
+        
+        $scope.update = function (list) {
+          $scope.changesSaved = false;
+          if (countdown) $timeout.cancel(countdown)
+          countdown = $timeout(function() {
+            var data = {
+              list: list,
+              content: $scope[list]
+            }
+            console.log('sending', data)
+            $http.post('http://'+host+'/data', data)
+            .then(showSaved, error)
+          }, 1000) 
+        }
+      }
+    })();
+
+  </script>
+  
+</body>
+</html>
