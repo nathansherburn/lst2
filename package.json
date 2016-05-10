@@ -12,8 +12,6 @@
   "dependencies": {
     "body-parser": "^1.15.1",
     "express": "^4.13.4",
-    "mongodb": "^2.1.18",
-    "mongoose": "^4.4.16",
-    "monk": "^1.0.1"
+    "mongoose": "^4.4.16"
   }
 }
